@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sosyal Medya Analiz Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center text-white">
+            <div class="loading-spinner mx-auto mb-3"></div>
+            <h3>Veriler Yükleniyor...</h3>
+        </div>
+    </div>
+
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="bi bi-graph-up-arrow text-primary"></i>
+                        Sosyal Medya Dashboard
+                    </h1>
+                    <p class="text-muted mb-0 mt-2">Gerçek zamanlı analiz ve istatistikler</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-primary btn-lg" id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Yenile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row" id="statsCards">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card" data-stat="posts">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="bi bi-file-post text-white"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Toplam Post</h6>
+                    <h2 class="stat-number mb-0" id="totalPosts">0</h2>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card" data-stat="comments">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="bi bi-chat-dots text-white"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Toplam Yorum</h6>
+                    <h2 class="stat-number mb-0" id="totalComments">0</h2>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card" data-stat="users">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="bi bi-people text-white"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Aktif Kullanıcı</h6>
+                    <h2 class="stat-number mb-0" id="totalUsers">0</h2>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card" data-stat="engagement">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <i class="bi bi-bar-chart text-white"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Ortalama Engagement</h6>
+                    <h2 class="stat-number mb-0" id="avgEngagement">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Chart: User Post Count -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4 class="mb-4">
+                        <i class="bi bi-bar-chart-fill text-primary"></i>
+                        Kullanıcı Başına Post Sayısı
+                    </h4>
+                    <canvas id="userPostChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart: Most Commented Posts -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4 class="mb-4">
+                        <i class="bi bi-chat-left-quote-fill text-success"></i>
+                        En Çok Yorum Alan Postlar
+                    </h4>
+                    <canvas id="commentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-box">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Post veya kullanıcı ara...">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <button class="filter-btn btn btn-outline-primary active" data-filter="all">
+                        <i class="bi bi-list"></i> Tümü
+                    </button>
+                    <button class="filter-btn btn btn-outline-success" data-filter="popular">
+                        <i class="bi bi-fire"></i> Popüler
+                    </button>
+                    <button class="filter-btn btn btn-outline-info" data-filter="recent">
+                        <i class="bi bi-clock"></i> Son 20
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Container -->
+        <div class="chart-container" id="mainContentContainer">
+            <h4 class="mb-4">
+                <i class="bi bi-trophy-fill text-warning"></i>
+                <span id="contentTitle">Popüler Postlar</span>
+                <span class="badge bg-primary ms-2" id="postCountBadge">0</span>
+            </h4>
+            <div id="topPostsList"></div>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div class="modal fade" id="commentsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="modalPostTitle">Post Başlığı</h5>
+                        <small id="modalPostAuthor">Yazar</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="post-body-full" id="modalPostBody"></div>
+                    <h6 class="mb-3">
+                        <i class="bi bi-chat-dots"></i> 
+                        Yorumlar 
+                        <span class="badge bg-primary" id="modalCommentCount">0</span>
+                    </h6>
+                    <div id="commentsContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS Modules -->
+    <script src="js/storage.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
